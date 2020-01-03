@@ -1,5 +1,7 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "ros/ros.h"
+#include "geometry_msgs/Twist.h"
 #include "turtlesim/Pose.h"
 
 ros::Publisher vel_publisher;
@@ -18,6 +20,8 @@ void set_orientation(double desired_angle);
 
 void pose_callback(const turtlesim::Pose::ConstPtr &pose_msg);
 
+void patrol();
+
 int main(int argc, char **argv){
 	ros::init(argc, argv, "turtle_motion");
 	ros::NodeHandle nh;
@@ -27,11 +31,15 @@ int main(int argc, char **argv){
 
 	ros::Rate loop_rate(0.5);
 
-	set_orientation(degrees_to_radians(120));
+	move(1.0, 1.0, 1);
 	loop_rate.sleep();
-	set_orientation(degrees_to_radians(-60));
-	loop_rate.sleep();
-	set_orientation(0);
+
+	for (int i=0; i < 10; i++){
+		std::cout << turtlesim_pose.x << ", " << turtlesim_pose.y << "\n";
+		patrol();
+	}
+	
+	
 
 	ros::spin();
 
@@ -127,4 +135,17 @@ void pose_callback(const turtlesim::Pose::ConstPtr &pose_msg){
 	turtlesim_pose.x = pose_msg->x;
 	turtlesim_pose.y = pose_msg->y;
 	turtlesim_pose.theta = pose_msg->theta;
+}
+
+void patrol(){
+	ros::Rate loop_rate(0.5);
+
+	move(2.0, 3.0, 1);
+	loop_rate.sleep();
+
+	move(1.0, 1.0, 0);
+	loop_rate.sleep();
+
+	rotate(degrees_to_radians(30), degrees_to_radians(30), 0);
+	loop_rate.sleep();
 }
