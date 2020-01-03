@@ -1,7 +1,10 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
+#include "turtlesim/Pose.h"
 
 ros::Publisher vel_publisher;
+ros::Subscriber pose_subscriber;
+turtlesim::Pose turtlesim_pose;
 
 const double pi = 3.14159265359;
 
@@ -11,16 +14,29 @@ void rotate(double angular_speed, double angle, bool clockwise);
 
 double degrees_to_radians(double degrees);
 
+void set_orientation(double desired_angle);
+
+void pose_callback(const turtlesim::Pose::ConstPtr &pose_msg);
+
 int main(int argc, char **argv){
 	ros::init(argc, argv, "turtle_motion");
 	ros::NodeHandle nh;
 
 	vel_publisher = nh.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 100);
+	pose_subscriber = nh.subscribe("/turtle1/pose", 10, pose_callback);
 
-	while (ros::ok){
-		move(2.0, 5.0, 1);
-		rotate(2.0, degrees_to_radians(180.0), 0);
-	}
+	ros::Rate loop_rate(0.5);
+
+	set_orientation(degrees_to_radians(120));
+	loop_rate.sleep();
+	set_orientation(degrees_to_radians(-60));
+	loop_rate.sleep();
+	set_orientation(0);
+
+	ros::spin();
+
+	return 0;
+		
 	
 }
 
@@ -99,4 +115,16 @@ void rotate(double angular_speed, double relative_angle, bool clockwise){
 
 double degrees_to_radians(double degrees){
 	return degrees * (pi/180.0);
+}
+
+void set_orientation(double desired_angle){
+	double relative_angle = desired_angle - turtlesim_pose.theta;
+	bool clockwise = ((relative_angle < 0)? true:false);
+	rotate(abs(relative_angle), abs(relative_angle), clockwise);
+}
+
+void pose_callback(const turtlesim::Pose::ConstPtr &pose_msg){
+	turtlesim_pose.x = pose_msg->x;
+	turtlesim_pose.y = pose_msg->y;
+	turtlesim_pose.theta = pose_msg->theta;
 }
