@@ -1,3 +1,5 @@
+//most of this I got from Anis Koubaa Udemy course "ROS forBeginners"
+
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
 #include "turtlesim/Pose.h"
