@@ -1,7 +1,5 @@
 #include "ros/ros.h"
 #include "geometry_msgs/Twist.h"
-#include "ros/ros.h"
-#include "geometry_msgs/Twist.h"
 #include "turtlesim/Pose.h"
 
 ros::Publisher vel_publisher;
@@ -9,6 +7,10 @@ ros::Subscriber pose_subscriber;
 turtlesim::Pose turtlesim_pose;
 
 const double pi = 3.14159265359;
+const double x_max = 10.5;
+const double y_max = 10.5;
+const double x_min = 0.5;
+const double y_min = 0.5;
 
 void move(double speed, double distance, bool isForward);
 
@@ -20,7 +22,7 @@ void set_orientation(double desired_angle);
 
 void pose_callback(const turtlesim::Pose::ConstPtr &pose_msg);
 
-void patrol();
+bool in_bounds();
 
 int main(int argc, char **argv){
 	ros::init(argc, argv, "turtle_motion");
@@ -34,9 +36,17 @@ int main(int argc, char **argv){
 	move(1.0, 1.0, 1);
 	loop_rate.sleep();
 
-	for (int i=0; i < 10; i++){
-		std::cout << turtlesim_pose.x << ", " << turtlesim_pose.y << "\n";
-		patrol();
+	for (int i=0; i < 100; i++){
+		if (in_bounds() == true){
+			move(1.0, 0.5, 1);
+		}
+		else {
+			loop_rate.sleep();
+			move(1.0, 1.0, 0);
+			loop_rate.sleep();
+			rotate(degrees_to_radians(30), degrees_to_radians(30), 0);
+			loop_rate.sleep();
+		}
 	}
 	
 	
@@ -137,15 +147,19 @@ void pose_callback(const turtlesim::Pose::ConstPtr &pose_msg){
 	turtlesim_pose.theta = pose_msg->theta;
 }
 
-void patrol(){
-	ros::Rate loop_rate(0.5);
-
-	move(2.0, 3.0, 1);
-	loop_rate.sleep();
-
-	move(1.0, 1.0, 0);
-	loop_rate.sleep();
-
-	rotate(degrees_to_radians(30), degrees_to_radians(30), 0);
-	loop_rate.sleep();
+bool in_bounds(){
+	int check = 0;
+	if (turtlesim_pose.x < x_max && turtlesim_pose.y < y_max){
+		check += 1;
+	}
+	if (turtlesim_pose.x > x_min && turtlesim_pose.y > y_min){
+		check += 1;
+	}
+		
+	if (check == 2){
+		return true;
+	}
+	else {
+		return false;
+	}
 }
