@@ -31,20 +31,29 @@ int main(int argc, char **argv){
 	vel_publisher = nh.advertise<geometry_msgs::Twist>("/turtle1/cmd_vel", 100);
 	pose_subscriber = nh.subscribe("/turtle1/pose", 10, pose_callback);
 
+	double forward_speed;
+	nh.getParam("/forward_speed", forward_speed);
+
+	double backup_speed;
+	nh.getParam("/backup_speed", backup_speed);
+
+	double rotation;
+	nh.getParam("/rotation", rotation);
+
 	ros::Rate loop_rate(0.5);
 
-	move(1.0, 1.0, 1);
+	rotate(degrees_to_radians(360), degrees_to_radians(360), 1);
 	loop_rate.sleep();
 
-	for (int i=0; i < 100; i++){
+	while (ros::ok()){
 		if (in_bounds() == true){
-			move(1.0, 0.5, 1);
+			move(forward_speed, 0.5, 1);
 		}
 		else {
 			loop_rate.sleep();
-			move(1.0, 1.0, 0);
+			move(backup_speed, 1.0, 0);
 			loop_rate.sleep();
-			rotate(degrees_to_radians(30), degrees_to_radians(30), 0);
+			rotate(degrees_to_radians(rotation), degrees_to_radians(rotation), 0);
 			loop_rate.sleep();
 		}
 	}
